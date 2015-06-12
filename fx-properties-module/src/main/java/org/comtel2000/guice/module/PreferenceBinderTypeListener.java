@@ -2,7 +2,7 @@ package org.comtel2000.guice.module;
 
 /*
  * #%L
- * FX Properties Module
+ * JavaFx Properties Module
  * %%
  * Copyright (C) 2015 comtel2000
  * %%
@@ -20,14 +20,24 @@ package org.comtel2000.guice.module;
  * #L%
  */
 
-import com.google.inject.AbstractModule;
-import com.google.inject.matcher.Matchers;
 
-public class PreferenceBinderModule extends AbstractModule {
+import java.lang.reflect.Field;
+
+import com.google.inject.TypeLiteral;
+import com.google.inject.spi.TypeEncounter;
+import com.google.inject.spi.TypeListener;
+
+class PreferenceBinderTypeListener implements TypeListener {
 
 	@Override
-	protected void configure() {
-		bindListener(Matchers.any(), new PreferenceBinderTypeListener());
+	public <I> void hear(TypeLiteral<I> type, TypeEncounter<I> encounter) {
+		for (Field field : type.getRawType().getDeclaredFields()) {
+			if (field.getType() == PreferenceBinder.class && field.isAnnotationPresent(PreferenceContext.class)) {
+				PreferenceContext annotation = field.getAnnotation(PreferenceContext.class);
+				encounter.register(new PreferenceBinderMembersInjector<I>(field, annotation));
+			}
+		}
+
 	}
 
 }

@@ -32,6 +32,8 @@ import java.util.prefs.Preferences;
 
 import javax.annotation.PreDestroy;
 
+import org.comtel2000.guice.module.PreferenceContext.Root;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.FloatProperty;
@@ -61,7 +63,7 @@ public class PreferenceBinder {
 	 * Use the user preference tree with associated {@link PreferenceBinder}
 	 * package name
 	 * 
-	 * @see Preferences
+	 * @see java.util.prefs.Preferences
 	 */
 	public PreferenceBinder() {
 		this(Preferences.userNodeForPackage(PreferenceBinder.class));
@@ -73,7 +75,7 @@ public class PreferenceBinder {
 	 * @param c
 	 *            package name
 	 * 
-	 * @see Preferences
+	 * @see java.util.prefs.Preferences
 	 */
 	public PreferenceBinder(Class<?> c) {
 		this(Preferences.userNodeForPackage(c));
@@ -87,15 +89,19 @@ public class PreferenceBinder {
 	 * @param pref
 	 *            selected preference tree
 	 * 
-	 * @see Preferences
+	 * @see org.comtel2000.guice.module.PreferenceContext
 	 */
-	public PreferenceBinder(Class<?> c, PreferenceRoot pref) {
-		this(pref == PreferenceRoot.USER ? Preferences.userNodeForPackage(c) : Preferences.systemNodeForPackage(c));
+	public PreferenceBinder(Class<?> c, Root pref) {
+		this(pref == Root.USER ? Preferences.userNodeForPackage(c) : Preferences.systemNodeForPackage(c));
 	}
 
 	@PreDestroy
-	public void flush() throws BackingStoreException {
-		prefs.flush();
+	public void flush() {
+		try {
+			prefs.flush();
+		} catch (BackingStoreException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public Preferences getPreferences() {
@@ -142,7 +148,6 @@ public class PreferenceBinder {
 			}
 			try (ByteArrayOutputStream obj = new ByteArrayOutputStream()) {
 				try (ObjectOutputStream stream = new ObjectOutputStream(obj)) {
-					System.out.println(v);
 					stream.writeObject(v);
 					stream.flush();
 				}

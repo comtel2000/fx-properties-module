@@ -3,18 +3,20 @@ This guice module allows JavaFx applications to bind Property to Preferences and
 
 sample usage:
 ```java
-public class Demo {
 
-	@Inject
+	@PreferenceContext
 	PreferenceBinder persist;
-	
+
 	@FXML
 	TextField userName;
-	
+
 	public Demo() {
-		//store and retrieve user name
+		// store and retrieve user name
 		persist.bind(userName.textProperty(), "user.name");
 	}
-}
+
+	void close() {
+		persist.flush();
+	}
 
 ```
